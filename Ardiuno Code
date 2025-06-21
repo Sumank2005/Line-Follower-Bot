@@ -1,0 +1,160 @@
+// Define sensor pins (analog inputs)
+const int sensorPins[8] = {A0, A1, A2, A3, A4, A5, A6, A7};
+
+// Motor driver pins
+const int ENA = 3;
+const int IN1 = 2;
+const int IN2 = 4;
+const int ENB = 11;
+const int IN3 = 10;
+const int IN4 = 12;
+
+// Sensor threshold (calibrate for your surface)
+const int threshold = 500;
+int sensorValues[8];
+
+void setup() {
+  Serial.begin(9600);
+  
+  // Set motor control pins as outputs
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  
+  delay(2000); // Initial stabilization delay
+}
+
+void loop() {
+  readSensors();
+  printSensorValues();
+  followLine();
+  delay(50);
+}
+
+// Read all analog sensors
+void readSensors() {
+  for (int i = 0; i < 8; i++) {
+    sensorValues[i] = analogRead(sensorPins[i]);
+  }
+}
+
+// Print sensor values for debugging
+void printSensorValues() {
+  Serial.print("Sensors: ");
+  for (int i = 0; i < 8; i++) {
+    Serial.print(sensorValues[i]);
+    Serial.print(" ");
+  }
+  Serial.println();
+}
+
+// Main line following logic
+void followLine() {
+  if (isForward()) {
+    moveForward();
+  } 
+  else if (isSharpRight()) {
+    sharpRight();
+  }
+  else if (isSharpLeft()) {
+    sharpLeft();
+  }
+  else if (isRight()) {
+    turnRight();
+  }
+  else if (isLeft()) {
+    turnLeft();
+  }
+  else {
+    motorStop(); // Stop if no line detected
+  }
+}
+
+// Movement functions
+void moveForward() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  analogWrite(ENA, 150);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENB, 150);
+}
+
+void turnRight() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  analogWrite(ENA, 0);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENB, 120);
+}
+
+void turnLeft() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  analogWrite(ENA, 120);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENB, 0);
+}
+
+void sharpRight() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  analogWrite(ENA, 100);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENB, 200);
+}
+
+void sharpLeft() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  analogWrite(ENA, 200);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENB, 100);
+}
+
+void motorStop() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  analogWrite(ENA, 0);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENB, 0);
+}
+
+// Navigation conditions
+bool isForward() {
+  return (sensorValues[3] > threshold && sensorValues[4] > threshold) ||
+         (sensorValues[2] > threshold && sensorValues[3] > threshold && 
+          sensorValues[4] > threshold && sensorValues[5] > threshold);
+}
+
+bool isRight() {
+  return sensorValues[5] > threshold || sensorValues[6] > threshold || 
+         sensorValues[7] > threshold || (sensorValues[3] > threshold && 
+         sensorValues[4] < threshold);
+}
+
+bool isLeft() {
+  return sensorValues[0] > threshold || sensorValues[1] > threshold || 
+         sensorValues[2] > threshold || (sensorValues[4] > threshold && 
+         sensorValues[3] < threshold);
+}
+
+bool isSharpRight() {
+  return (sensorValues[5] > threshold && sensorValues[6] > threshold && 
+          sensorValues[7] > threshold) ||
+         (sensorValues[4] > threshold && sensorValues[5] > threshold && 
+          sensorValues[6] > threshold && sensorValues[7] > threshold);
+}
+
+bool isSharpLeft() {
+  return (sensorValues[0] > threshold && sensorValues[1] > threshold && 
+          sensorValues[2] > threshold) ||
+         (sensorValues[0] > threshold && sensorValues[1] > threshold && 
+          sensorValues[2] > threshold && sensorValues[3] > threshold);
+}
