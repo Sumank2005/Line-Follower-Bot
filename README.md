@@ -17,11 +17,11 @@ An Arduino-based **line following robot** that detects and follows a black path 
 ## 🔌 Components Used
 
 - Arduino UNO
-- IR Sensor Module (x2 or x5)
+- 8 array analog IR Sensor
 - L298N / L293D Motor Driver
-- DC Geared Motors (x2)
+- N20 Gear motor
 - Wheels + Chassis
-- 12V Battery Pack
+- 12V Li-ion Battery
 - Jumper Wires
 - Breadboard or soldered PCB (optional)
 
